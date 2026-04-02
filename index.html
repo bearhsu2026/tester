@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>大人的玩具派對</title>
+    <style>
+        /* ==========================================================================
+           1. Global Design Tokens (Mapped from Dark.tokens.json)
+           ========================================================================== */
+        :root { 
+            /* Color System: Surfaces */
+            --color-surface: #191919;
+            --color-surface-container: #232323;
+            --color-surface-variant: rgba(71, 71, 71, 0.4);
+            --color-outline: #474747;
+            --color-scrim: rgba(25, 25, 25, 0.80); 
+            
+            /* Color System: Text & Icons */
+            --color-text-primary: #FFFFFF;
+            --color-text-secondary: #C8C8C8;
+            --color-text-tertiary: #646464;
+            
+            /* Color System: Brand */
+            --color-brand-primary: #00D2BE; 
+            --color-brand-info: #60C4E8;
+            --color-brand-pink: #F6418D;
+            --color-brand-purple: #8238BA;
+            --color-brand-gold: #FFA500;
+            --color-diamond: #3EFFEE; 
+
+            /* Typography Base */
+            --font-family: "PingFang TC", -apple-system, BlinkMacSystemFont, "Microsoft JhengHei", sans-serif;
+            --font-weight-regular: 400; 
+            --font-weight-semibold: 600;
+        }
+
+        /* ==========================================================================
+           2. Responsive Layout & Spacing Tokens 
+           ========================================================================== */
+        :root {
+            --space-0: 0px; --space-1: 2px; --space-2: 4px; --space-3: 8px;
+            --space-4: 12px; --space-5: 16px; --space-6: 24px; --space-7: 32px;
+            --space-8: 40px; --space-9: 48px; --space-10: 64px; --space-12: 128px;
+
+            --radius-none: 0px; --radius-xs: 4px; --radius-sm: 8px; 
+            --radius-md: 12px; --radius-lg: 16px; --radius-xl: 28px; --radius-full: 1000px;
+
+            --font-headline-large: 36px; --font-headline-medium: 32px; --font-headline-small: 28px;
+            --font-title-large: 22px; --font-title-medium: 20px; --font-title-small: 18px;
+            --font-body-large: 16px; --font-body-medium: 14px; --font-body-small: 12px;
+
+            --layout-container-width: 100%;
+            --layout-page-padding: 16px;
+            --layout-creator-card-width: 110px; 
+        }
+
+        @media (min-width: 768px) { :root { --layout-container-width: 720px; --layout-creator-card-width: 140px; } }
+        @media (min-width: 1440px) { :root { --layout-container-width: 960px; --layout-creator-card-width: 343px; } }
+        
+        /* ==========================================================================
+           3. Base Reset & Animated Atmosphere 
+           ========================================================================== */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: var(--font-family); background-color: var(--color-surface); 
+            color: var(--color-text-primary); line-height: 1.6; 
+            min-height: 100vh; position: relative; overflow-x: hidden;
+        }
+
+        .parallax-bg {
+            position: fixed; inset: -250px; z-index: -2; pointer-events: none;
+            will-change: transform;
+        }
+
+        .bg-glows {
+            position: absolute; inset: 0;
+            background: 
+                radial-gradient(circle at 15% 20%, rgba(246, 65, 141, 0.12), transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(0, 210, 190, 0.12), transparent 45%);
+            animation: breathe 6s infinite alternate ease-in-out;
+            will-change: transform, opacity;
+        }
+        @keyframes breathe { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.1); opacity: 1.2; } }
+
+        .particles-layer {
+            position: absolute; top: 100%; left: 0; width: 3px; height: 3px; border-radius: 50%; background: transparent; 
+            box-shadow: 15vw -10vh var(--color-brand-primary), 30vw -30vh var(--color-brand-pink), 80vw -5vh var(--color-brand-purple), 60vw -50vh var(--color-brand-primary), 45vw -80vh var(--color-brand-gold), 90vw -120vh var(--color-brand-pink), 25vw -150vh var(--color-brand-purple), 75vw -180vh var(--color-brand-primary);
+            animation: floatDust 18s linear infinite; will-change: transform;
+        }
+        .particles-layer:nth-child(2) { width: 2px; height: 2px; animation-duration: 25s; animation-delay: -5s; box-shadow: 20vw -20vh var(--color-brand-gold), 70vw -60vh var(--color-brand-pink), 50vw -100vh var(--color-brand-primary), 10vw -140vh var(--color-brand-purple); }
+        .particles-layer:nth-child(3) { width: 4px; height: 4px; animation-duration: 12s; animation-delay: -10s; filter: blur(1px); box-shadow: 10vw -40vh var(--color-brand-primary), 85vw -90vh var(--color-brand-pink), 40vw -130vh var(--color-brand-gold); }
+        @keyframes floatDust { 100% { transform: translateY(-250vh); } }
+
+        .container { 
+            max-width: var(--layout-container-width); margin: 0 auto; 
+            padding: var(--space-10) var(--layout-page-padding) calc(180px + env(safe-area-inset-bottom, 24px)); 
+        }
+
+        /* ==========================================================================
+           4. Typography & Dynamic Gradient Sweep
+           ========================================================================== */
+        h1 { 
+            font-size: var(--font-headline-small); font-weight: var(--font-weight-semibold);
+            text-align: center; margin-bottom: var(--space-2);
+            letter-spacing: 1px; filter: drop-shadow(0 2px 4px rgba(0, 210, 190, 0.2));
+        }
+
+        .text-shine {
+            background: linear-gradient(to right, var(--color-brand-primary) 0%, var(--color-text-primary) 20%, var(--color-brand-pink) 50%, var(--color-text-primary) 80%, var(--color-brand-primary) 100%);
+            background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; 
+            animation: textShine 4s linear infinite; will-change: background-position;
+        }
+        @keyframes textShine { to { background-position: -200% center; } }
+        
+        .date-text { text-align: center; font-size: var(--font-body-medium); color: var(--color-text-secondary); margin-bottom: var(--space-3); }
+
+        .section-title { font-size: var(--font-title-medium); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3); padding-left: var(--space-3); display: flex; align-items: center; text-align: left; }
+        .title-primary { color: var(--color-brand-primary); border-left: var(--space-1) solid var(--color-brand-primary); }
+        .title-pink { color: var(--color-brand-pink); border-left: var(--space-1) solid var(--color-brand-pink); }
+        .title-purple { color: var(--color-brand-purple); border-left: var(--space-1) solid var(--color-brand-purple); }
+        
+        .dia-icon { width: 14px; height: 14px; vertical-align: middle; margin: 0 2px; transform: translateY(-2px); }
+        .dia-icon-lg { width: 18px; height: 18px; vertical-align: middle; margin: 0 2px; transform: translateY(-2px); }
+
+        /* ==========================================================================
+           5. Components (Touch Target Optimized >= 40px)
+           ========================================================================== */
+        
+        .lang-selector { 
+            position: fixed; top: var(--space-5); right: var(--space-5); z-index: 100; 
+            background-color: var(--color-surface-container); border: 1px solid var(--color-outline); 
+            color: var(--color-text-primary); padding: 0 var(--space-4); border-radius: var(--radius-full); 
+            font-size: var(--font-body-small); height: 40px; outline: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: flex; align-items: center;
+        }
+
+        .countdown-wrapper {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background-color: rgba(246, 65, 141, 0.1); border: 1px solid rgba(246, 65, 141, 0.3);
+            padding: var(--space-3) var(--space-6); border-radius: var(--radius-full);
+            margin: 0 auto var(--space-6); width: fit-content; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .countdown-label { font-size: var(--font-body-small); color: var(--color-brand-pink); font-weight: var(--font-weight-semibold); }
+        .countdown-timer { font-family: 'Courier New', Courier, monospace; font-size: var(--font-title-medium); font-weight: bold; color: var(--color-text-primary); letter-spacing: 1px; margin-top: 2px; }
+        .countdown-timer span { display: inline-block; will-change: transform; transition: color 0.2s; }
+        .countdown-timer small { font-size: var(--font-body-small); color: var(--color-text-secondary); margin: 0 4px 0 2px; font-family: var(--font-family); }
+        .tick-pop { animation: tickPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: var(--color-brand-pink); }
+        @keyframes tickPop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        .card { 
+            position: relative; overflow: hidden; background-color: var(--color-surface-container); 
+            border: 1px solid var(--color-outline); border-radius: var(--radius-lg); 
+            padding: var(--space-6); margin-bottom: var(--space-5); 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+            will-change: transform;
+        }
+
+        .inline-rule { font-size: var(--font-body-medium); color: var(--color-text-secondary); background-color: var(--color-surface-variant); padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); margin-bottom: var(--space-6); line-height: 1.6; text-align: left; }
+
+        /* Progress Bar (動畫時間由 JS 動態控制) */
+        .progress-track { background-color: var(--color-surface); height: var(--space-4); border-radius: var(--radius-full); overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); position: relative; border: 1px solid var(--color-outline); margin: var(--space-2) 0; }
+        .progress-bar { width: 0%; height: 100%; position: relative; border-radius: var(--radius-full); background: linear-gradient(90deg, var(--color-brand-purple), var(--color-brand-pink), var(--color-brand-primary)); }
+        .progress-bar::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 15px; background: #fff; border-radius: var(--radius-full); box-shadow: 0 0 12px 2px var(--color-brand-primary), 0 0 20px rgba(0, 210, 190, 0.9); opacity: 0; transition: opacity 0.5s; z-index: 2; }
+        .progress-bar.active::before { opacity: 1; }
+        .progress-bar::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; border-radius: var(--radius-full); background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: skewX(-20deg); animation: chargeSweep 1.5s infinite linear; }
+
+        .bonus-pack-banner { margin-top: var(--space-6); padding: var(--space-4); border-radius: var(--radius-md); background: linear-gradient(135deg, rgba(246, 65, 141, 0.15), rgba(0, 210, 190, 0.15)); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-3); position: relative; overflow: hidden; }
+        .bonus-pack-banner::before { content: ''; position: absolute; top: 0; left: -100%; width: 40%; height: 100%; background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent); transform: skewX(-20deg); animation: shimmerSweep 3.5s infinite; }
+        .bonus-pack-text { font-size: clamp(11px, 3.6vw, 14px); letter-spacing: -0.5px; color: var(--color-text-primary); font-weight: var(--font-weight-semibold); flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bonus-pack-btn { background-color: var(--color-brand-primary); color: var(--color-surface); padding: 0 var(--space-4); height: 40px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-full); font-size: var(--font-body-small); font-weight: var(--font-weight-semibold); text-decoration: none; white-space: nowrap; box-shadow: 0 2px 8px rgba(0, 210, 190, 0.4); transition: transform 0.1s; position: relative; z-index: 1; }
+        .bonus-pack-btn:active { transform: scale(0.96); }
+
+        .mystery-badge-wrapper { position: relative; width: 100px; height: 100px; margin: var(--space-4) auto var(--space-5); display: flex; justify-content: center; align-items: center; perspective: 1000px; }
+        .badge-img { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6)); will-change: transform; }
+        .foil-shine { position: absolute; inset: 2px; border-radius: 50%; z-index: 3; pointer-events: none; background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.6) 25%, rgba(255, 215, 0, 0.8) 30%, transparent 35%); background-size: 200% 200%; animation: foilShine 4s infinite linear; mix-blend-mode: overlay; }
+        @keyframes foilShine { 0% { background-position: 200% 200%; } 100% { background-position: -100% -100%; } }
+        .burst-effect { position: absolute; inset: -40px; z-index: 1; pointer-events: none; }
+        .badge-unlocked .burst-effect::before { content: ''; position: absolute; inset: 20px; border-radius: 50%; background: radial-gradient(circle, rgba(255,215,0,0.8) 0%, transparent 70%); opacity: 0; animation: burstFlash 1.5s ease-out forwards; }
+        .badge-unlocked .burst-effect::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: repeating-conic-gradient(from 0deg, transparent 0deg, rgba(255,215,0,0.5) 10deg, transparent 20deg); opacity: 0; animation: burstRays 1.5s ease-out forwards; }
+        .badge-unlocked .badge-img { animation: badgePop 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes badgePop { 0% { transform: scale(1); } 15% { transform: scale(1.3); filter: brightness(1.2) drop-shadow(0 0 15px rgba(255,215,0,0.8)); } 100% { transform: scale(1); } }
+        @keyframes burstFlash { 0% { opacity: 0; transform: scale(0.5); } 15% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(1.5); } }
+        @keyframes burstRays { 0% { opacity: 0; transform: scale(0.5) rotate(0deg); } 15% { opacity: 1; transform: scale(1) rotate(45deg); } 100% { opacity: 0; transform: scale(1.5) rotate(90deg); } }
+
+        .watch-timer-ui { background-color: rgba(0, 0, 0, 0.4); border-radius: var(--radius-xl); padding: var(--space-2) var(--space-5); display: inline-flex; align-items: center; gap: var(--space-3); border: 1px solid rgba(246, 65, 141, 0.3); font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); font-size: 15px; color: var(--color-text-primary); margin-top: var(--space-2); }
+
+        .login-overlay { position: absolute; inset: 0; z-index: 10; border-radius: var(--radius-lg); background-color: var(--color-scrim); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .login-overlay.active { opacity: 1; pointer-events: auto; }
+        .login-text { color: var(--color-brand-primary); font-size: var(--font-body-large); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-4); }
+        .btn-login { background: transparent; border: 1px solid var(--color-brand-primary); color: var(--color-brand-primary); padding: 0 var(--space-5); height: 40px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-full); font-size: var(--font-body-medium); cursor: pointer; text-decoration: none; transition: all 0.2s; }
+        .btn-login:hover { background-color: rgba(0, 210, 190, 0.1); }
+
+        @keyframes cta-shake-flash {
+            0%, 85% { transform: scale(1) rotate(0deg); box-shadow: 0 4px 15px rgba(0, 210, 190, 0.3); }
+            88% { transform: scale(1.04) rotate(-2deg); box-shadow: 0 0 25px rgba(0, 210, 190, 0.8), inset 0 0 15px rgba(255,255,255,0.5); }
+            91% { transform: scale(1.04) rotate(2deg); box-shadow: 0 0 25px rgba(0, 210, 190, 0.8), inset 0 0 15px rgba(255,255,255,0.5); }
+            94% { transform: scale(1.04) rotate(-2deg); box-shadow: 0 0 25px rgba(0, 210, 190, 0.8), inset 0 0 15px rgba(255,255,255,0.5); }
+            97% { transform: scale(1.04) rotate(2deg); box-shadow: 0 0 25px rgba(0, 210, 190, 0.8), inset 0 0 15px rgba(255,255,255,0.5); }
+            100% { transform: scale(1) rotate(0deg); box-shadow: 0 4px 15px rgba(0, 210, 190, 0.3); }
+        }
+
+        .sticky-bottom-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+            padding: var(--space-3) var(--layout-page-padding) calc(88px + env(safe-area-inset-bottom, 24px));
+            background: linear-gradient(to top, rgba(25,25,25,1) 60%, rgba(25,25,25,0.8) 85%, rgba(25,25,25,0));
+            display: flex; justify-content: center; pointer-events: none; 
+        }
+        .cta-btn { 
+            pointer-events: auto; display: flex; align-items: center; justify-content: center; width: 100%; max-width: var(--layout-container-width); height: 56px;
+            background: linear-gradient(45deg, var(--color-brand-primary), var(--color-brand-purple)); 
+            border: none; border-radius: var(--radius-lg); color: var(--color-surface); font-size: var(--font-title-small); font-weight: var(--font-weight-semibold); text-decoration: none; 
+            animation: cta-shake-flash 3s infinite; transition: transform 0.1s;
+        }
+        .cta-btn:active { animation: none; transform: scale(0.96); } 
+
+        .carousel-wrapper { position: relative; margin: var(--space-4) 0; }
+        .creator-carousel { display: flex; overflow-x: auto; gap: var(--space-2); padding-bottom: var(--space-3); scroll-snap-type: x mandatory; scrollbar-width: none; cursor: grab; }
+        .creator-carousel:active { cursor: grabbing; scroll-snap-type: none; } .creator-carousel::-webkit-scrollbar { display: none; }
+        
+        .creator-card { flex: 0 0 var(--layout-creator-card-width); scroll-snap-align: start; text-align: center; background-color: var(--color-surface); border: 1px solid var(--color-outline); border-radius: var(--radius-md); padding: var(--space-4) 4px; user-select: none; transition: transform 0.2s ease-out; will-change: transform; transform-style: preserve-3d; }
+        .creator-card .avatar { width: 96px; height: 96px; border-radius: var(--radius-full); margin: 0 auto var(--space-3); border: 2px solid var(--color-brand-purple); padding: 2px; overflow: hidden; pointer-events: none; }
+        .creator-card .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-full); pointer-events: none; }
+        .creator-card .creator-name { font-size: var(--font-body-small); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: var(--space-3); color: var(--color-text-primary); }
+        .btn-follow { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 var(--space-4); background-color: rgba(130, 56, 186, 0.2); border: 1px solid var(--color-brand-purple); border-radius: var(--radius-md); color: var(--color-text-primary); font-size: var(--font-body-small); text-decoration: none; font-weight: var(--font-weight-semibold); }
+        
+        .scroll-btn { position: absolute; top: 40%; transform: translateY(-50%); width: 40px; height: 40px; background-color: var(--color-surface-container); border: 1px solid var(--color-brand-purple); border-radius: var(--radius-full); color: var(--color-text-primary); font-weight: var(--font-weight-semibold); font-size: 16px; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 2; opacity: 0; transition: opacity 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        .carousel-wrapper:hover .scroll-btn { opacity: 1; }
+        .scroll-btn.left { left: calc(var(--space-4) * -1); } .scroll-btn.right { right: calc(var(--space-4) * -1); }
+        @media (hover: none) { .scroll-btn { display: none; } } 
+        
+        .creator-rules-list { font-size: var(--font-body-medium); color: var(--color-text-secondary); padding-left: var(--space-5); margin-bottom: var(--space-5); text-align: left; }
+        .creator-rules-list li { margin-bottom: var(--space-3); line-height: 1.6; }
+        
+        .text-cta { display: inline-flex; align-items: center; justify-content: center; height: 40px; color: var(--color-brand-purple); background-color: rgba(130, 56, 186, 0.1); border: 1px solid var(--color-brand-purple); padding: 0 var(--space-5); border-radius: var(--radius-full); font-size: var(--font-body-medium); font-weight: var(--font-weight-semibold); text-decoration: none; margin-top: var(--space-4); transition: all 0.2s ease; }
+        .text-cta::after { content: '>'; margin-left: var(--space-2); font-family: monospace; font-size: 16px; font-weight: bold; }
+        .text-cta:hover { background-color: rgba(130, 56, 186, 0.2); }
+
+        .fade-in-up { opacity: 0; animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .fade-in-up[style*="--i"] { animation-delay: calc(var(--i) * 0.12s); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
+
+        .skeleton { animation: pulse 1.5s infinite; background-color: var(--color-outline); border-radius: var(--radius-md); }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 0.8; } 100% { opacity: 0.4; } }
+    </style>
+</head>
+<body>
+
+    <div id="parallax-bg" class="parallax-bg">
+        <div class="bg-glows"></div>
+        <div class="particles-layer"></div>
+        <div class="particles-layer"></div>
+        <div class="particles-layer"></div>
+    </div>
+
+    <select id="lang-selector" class="lang-selector" onchange="changeLanguage(this.value)">
+        <option value="zh-TW">繁體中文</option>
+        <option value="zh-CN">简体中文</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+    </select>
+
+    <div class="container">
+        <div id="skeleton-ui">
+            <div class="skeleton" style="height: 40px; width: 70%; margin: 0 auto var(--space-5);"></div>
+            <div class="skeleton" style="height: 180px; width: 100%; margin-bottom: var(--space-5);"></div>
+            <div class="skeleton" style="height: 250px; width: 100%;"></div>
+        </div>
+
+        <div id="app-content" style="display: none;">
+            
+            <h1 class="fade-in-up" style="--i:0;">
+                <span class="text-shine" data-i18n="title">大人的玩具派對</span>
+            </h1>
+            <p class="date-text fade-in-up" style="--i:1;" data-i18n="date">2026/04/03 00:00 - 04/06 23:59 (GMT+8)</p>
+
+            <div class="countdown-wrapper fade-in-up" style="--i:2;">
+                <span class="countdown-label" data-i18n="ends_in">距離派對結束還剩</span>
+                <div class="countdown-timer">
+                    <span id="cd-d">00</span><small data-i18n="time_d">天</small> :
+                    <span id="cd-h">00</span><small data-i18n="time_h">時</small> :
+                    <span id="cd-m">00</span><small data-i18n="time_m">分</small> :
+                    <span id="cd-s">00</span><small data-i18n="time_s">秒</small>
+                </div>
+            </div>
+
+            <div class="card fade-in-up tiltable" style="--i:3;">
+                <div class="login-overlay" id="overlay-progress">
+                    <div class="login-text" data-i18n="login_prompt">請先登入以查看專屬進度</div>
+                    <a href="https://swag.live/login" target="_blank" class="btn-login" data-i18n="login_btn">立即登入</a>
+                </div>
+
+                <h3 class="section-title title-primary" data-i18n="progress_title">鑽石回饋進度</h3>
+                <div class="inline-rule" data-i18n-html="progress_rule">
+                    直播間「互動菜單」內任意指令<br>每滿 10,000 <img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon"> 自動回饋 500 <img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon">
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-3); font-size: var(--font-body-medium);">
+                    <span data-i18n="spent">累計送出鑽石</span>
+                    <span style="color: var(--color-brand-primary); font-weight: var(--font-weight-semibold);">
+                        <span id="val-cost">0</span> <img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon-lg">
+                    </span>
+                </div>
+                
+                <div class="progress-track">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-top: var(--space-3); font-size: var(--font-body-small); align-items: flex-start;">
+                    <div style="color: var(--color-text-tertiary); display: flex; flex-direction: column; gap: var(--space-1);">
+                        <span data-i18n-html="limit_text">* 每用戶回饋上限 10,000 <img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon"></span>
+                        <span data-i18n="cashback_delay_text">*將於 10 - 20 分後自動派發。</span>
+                    </div>
+                    <span style="color: var(--color-brand-pink); font-weight: var(--font-weight-semibold);">
+                        <span data-i18n="got_cashback">已領取</span> <span id="val-cashback">0</span> <img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon">
+                    </span>
+                </div>
+
+                <div class="bonus-pack-banner">
+                    <div class="bonus-pack-text" data-i18n="pack_title">快閃加量禮包⚡️鑽石狂送最高11%</div>
+                    <a href="https://swag.live/?campaign-id=checkout-diamondpack&campaign=" target="_blank" class="bonus-pack-btn" data-i18n="pack_btn">立即搶購</a>
+                </div>
+            </div>
+
+            <div class="card fade-in-up tiltable" style="--i:4; text-align: center;">
+                <div class="login-overlay" id="overlay-badge">
+                    <div class="login-text" data-i18n="login_prompt">請先登入以查看專屬進度</div>
+                    <a href="https://swag.live/login" target="_blank" class="btn-login" data-i18n="login_btn">立即登入</a>
+                </div>
+
+                <h3 class="section-title title-pink" data-i18n="badge_title">尊榮徽章成就活動</h3>
+                <div class="inline-rule" data-i18n-html="badge_rule">
+                    任意直播間玩指令/互動菜單滿 1 萬 <img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon">，<br>且觀看「私密直播」達 10 分鐘，即可獲得徽章成就。
+                </div>
+                
+                <div id="badge-wrapper" class="mystery-badge-wrapper">
+                    <div class="burst-effect"></div>
+                    <img src="https://public.swag.live/badges/campaign_toyparty.svg" alt="Badge" class="badge-img">
+                    <div class="foil-shine"></div>
+                </div>
+                
+                <div style="font-size: var(--font-title-small); font-weight: var(--font-weight-semibold);" data-i18n="badge_name">大人的玩具師</div>
+                
+                <div style="font-size: var(--font-body-small); color: var(--color-brand-pink); margin: var(--space-4) 0 var(--space-1); font-weight: var(--font-weight-semibold);" data-i18n="watch_progress">觀看進度</div>
+                <div class="watch-timer-ui">
+                    <div id="timer-dot" style="width: 8px; height: 8px; background-color: var(--color-brand-pink); border-radius: var(--radius-full); animation: pulse 1s infinite;"></div>
+                    <span id="current-time">00:00</span> / <span id="target-time">10:00</span>
+                </div>
+                
+                <p id="badge-status" style="font-size: var(--font-body-medium); color: var(--color-text-tertiary); margin-top: var(--space-4); margin-bottom: 0;" data-i18n="badge_locked">未達成目標</p>
+                <p style="font-size: var(--font-body-small); color: var(--color-text-tertiary); margin-top: var(--space-3); margin-bottom: 0;" data-i18n="badge_disclaimer">* 活動資格與進度，按『私密邀請』的計費分鐘計算。</p>
+            </div>
+
+            <div class="card fade-in-up tiltable" id="section-creator" style="--i:5; background-color: var(--color-surface); border-color: var(--color-outline);">
+                <h3 class="section-title title-purple" data-i18n="creator_main_title">直播獎金池挑戰賽</h3>
+                <div style="font-size: var(--font-body-small); color: var(--color-text-secondary); margin: 0 0 var(--space-4) var(--space-4); text-align: left;" data-i18n="creator_sub_title">支持心中女神，幫她賺豐厚獎勵</div>
+                
+                <div class="carousel-wrapper">
+                    <button class="scroll-btn left" onclick="scrollCarousel(-150)">&lt;</button>
+                    <div class="creator-carousel" id="creator-list"></div>
+                    <button class="scroll-btn right" onclick="scrollCarousel(150)">&gt;</button>
+                </div>
+
+                <div style="font-size: var(--font-body-medium); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin-bottom: var(--space-3); text-align: left;" data-i18n="creator_rule_title">主播活動規則</div>
+                <ul class="creator-rules-list">
+                    <li data-i18n-html="creator_rule_1">活動期間主播直播累積鑽石 <img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon"> 排行，<br>達前 15 名依排名比例瓜分 20% 獎金池。</li>
+                    <li data-i18n-html="creator_rule_2">20% 獎金池，以前 15 名主播的直播總鑽石 <img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon"> 數加總為計算基礎。</li>
+                    <li data-i18n-html="creator_rule_3"><strong>額外加碼：</strong>搜集指令(一般＋玩具)<br>每達50萬鑽石 <img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon">，即可獲得一張抽獎券，<br>可再抽80,000鑽石 <img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon"> (共10名)。</li>
+                </ul>
+                <div style="text-align: center;">
+                    <a href="https://creators.swag.live/apchild" target="_blank" class="text-cta" data-i18n="creator_cta">主播活動詳情</a>
+                </div>
+            </div>
+
+            <div class="fade-in-up" style="--i:6; font-size: var(--font-body-small); color: var(--color-text-tertiary); text-align: center; margin-top: var(--space-6);" data-i18n-html="disclaimer">
+                本活動主辦單位保留修改、變更或終止活動之權利。<br>活動資料更新需5分鐘時間。
+            </div>
+        </div>
+    </div>
+
+    <div class="sticky-bottom-bar" id="sticky-cta" style="display: none;">
+        <a href="https://swag.live/livestream" target="_blank" class="cta-btn" data-i18n="cta">進入直播間開玩</a>
+    </div>
+
+    <script>
+        const DIA_IMG = '<img src="https://swag.live/static/img/ic_diamond_sm.cf6904ca.svg" class="dia-icon">';
+        const buildRule = (text) => text.replace(/{DIA}/g, DIA_IMG);
+
+        const i18n = {
+            'zh-TW': {
+                title: '大人的玩具派對', date: '2026/04/03 00:00 - 04/06 23:59 (GMT+8)',
+                ends_in: '距離派對結束還剩', time_d: '天', time_h: '時', time_m: '分', time_s: '秒',
+                login_prompt: '請先登入以查看專屬進度', login_btn: '立即登入',
+                progress_title: '鑽石回饋進度', spent: '累計送出鑽石', got_cashback: '已領取',
+                progress_rule: buildRule('直播間「互動菜單」內任意指令<br>每滿 10,000 {DIA} 自動回饋 500 {DIA}'), 
+                limit_text: buildRule('* 每用戶回饋上限 10,000 {DIA}'),
+                cashback_delay_text: '*將於 10 - 20 分後自動派發。',
+                pack_title: '快閃加量禮包⚡️鑽石狂送最高11%', pack_btn: '立即搶購',
+                badge_title: '尊榮徽章成就活動', badge_name: '大人的玩具師', badge_coming_soon: '敬請期待', watch_progress: '觀看進度', badge_locked: '未達成目標', badge_unlocked: '恭喜達成徽章成就！',
+                badge_rule: buildRule('任意直播間玩指令/互動菜單滿1萬{DIA}，<br>且觀看「私密直播」達10分鐘，即可獲得徽章成就。'), 
+                badge_disclaimer: '* 活動資格與進度，按『私密邀請』的計費分鐘計算。',
+                cta: '進入直播間開玩', 
+                creator_main_title: '直播獎金池挑戰賽', creator_sub_title: '支持心中女神，幫她賺豐厚獎勵', creator_rule_title: '主播活動規則',
+                creator_rule_1: buildRule('活動期間主播直播累積鑽石{DIA}排行，<br>達前 15 名依排名比例瓜分 20% 獎金池。'),
+                creator_rule_2: buildRule('20% 獎金池，以前 15 名主播的直播總鑽石{DIA}數加總為計算基礎。'),
+                creator_rule_3: buildRule('<strong>額外加碼：</strong>搜集指令(一般＋玩具)<br>每達50萬鑽石{DIA}，即可獲得一張抽獎券，<br>可再抽80,000鑽石{DIA} (共10名)。'),
+                creator_cta: '主播活動詳情', btn_follow: '立即追蹤', 
+                disclaimer: '本活動主辦單位保留修改、變更或終止活動之權利。<br>活動資料更新需5分鐘時間。'
+            },
+            'zh-CN': {
+                title: '大人的玩具派对', date: '2026/04/03 00:00 - 04/06 23:59 (GMT+8)',
+                ends_in: '距离派对结束还剩', time_d: '天', time_h: '时', time_m: '分', time_s: '秒',
+                login_prompt: '请先登入以查看专属进度', login_btn: '立即登入',
+                progress_title: '钻石回馈进度', spent: '累计送出钻石', got_cashback: '已领取',
+                progress_rule: buildRule('直播间「互动菜单」内任意指令<br>每满 10,000 {DIA} 自动回馈 500 {DIA}'), 
+                limit_text: buildRule('* 每用户回馈上限 10,000 {DIA}'),
+                cashback_delay_text: '*将于 10 - 20 分后自动派发。',
+                pack_title: '快闪加量礼包⚡️钻石狂送最高11%', pack_btn: '立即抢购',
+                badge_title: '尊荣徽章成就活动', badge_name: '大人的玩具师', badge_coming_soon: '敬请期待', watch_progress: '观看进度', badge_locked: '未达成目标', badge_unlocked: '恭喜达成徽章成就！',
+                badge_rule: buildRule('任意直播间玩指令/互动菜单满1万{DIA}，<br>且观看「私密直播」达10分钟，即可获得徽章成就。'), 
+                badge_disclaimer: '* 活动资格与进度，按『私密邀请』的计费分钟计算。',
+                cta: '进入直播间开玩', 
+                creator_main_title: '直播奖金池挑战赛', creator_sub_title: '支持心中女神，帮她赚丰厚奖励', creator_rule_title: '主播活动规则',
+                creator_rule_1: buildRule('活动期间主播直播累计钻石{DIA}排行，<br>达前 15 名依排名比例瓜分 20% 奖金池。'),
+                creator_rule_2: buildRule('20% 奖金池，以前 15 名主播的直播总钻石{DIA}数加总为计算基础。'),
+                creator_rule_3: buildRule('<strong>额外加码：</strong>搜集指令(一般＋玩具)<br>每达50万钻石{DIA}，即可获得一张抽奖券，<br>可再抽80,000钻石{DIA} (共10名)。'),
+                creator_cta: '主播活动详情', btn_follow: '立即追踪', 
+                disclaimer: '本活动主办单位保留修改、变更或终止活动之权利。<br>活动资料更新需5分钟时间。'
+            },
+            'en': {
+                title: 'Adult Toy Party', date: 'Apr 3 00:00 - Apr 6 23:59 (GMT+8)',
+                ends_in: 'Party ends in', time_d: 'd', time_h: 'h', time_m: 'm', time_s: 's',
+                login_prompt: 'Please login to view your progress', login_btn: 'Login Now',
+                progress_title: 'Cashback Progress', spent: 'Total Diamonds Sent', got_cashback: 'Received',
+                progress_rule: buildRule('Any command in "Play with Me"<br>Get 500 {DIA} back for every 10k {DIA}'), 
+                limit_text: buildRule('* Max cashback 10,000 {DIA} per user'),
+                cashback_delay_text: '*Distributed automatically in 10-20 mins.',
+                pack_title: 'Flash Bonus Pack⚡️ Up to 11% Extra Diamonds!', pack_btn: 'Get it now',
+                badge_title: 'Exclusive Badge Achievement', badge_name: 'Adult Toy Master', badge_coming_soon: 'Coming Soon', watch_progress: 'Watch Time', badge_locked: 'Goal Not Reached', badge_unlocked: 'Achievement Unlocked!',
+                badge_rule: buildRule('Spend 10k {DIA} on Play with Me &<br>watch "Private Stream" for 10 mins to unlock.'), 
+                badge_disclaimer: '* Progress is based on billed "Private Show" minutes.',
+                cta: 'Join Stream Now', 
+                creator_main_title: 'Live Prize Pool Challenge', creator_sub_title: 'Support Your Goddess, Earn Her Rewards', creator_rule_title: 'Creator Rules',
+                creator_rule_1: buildRule('Top 15 creators by accumulated Diamonds {DIA}<br>will split a 20% prize pool.'),
+                creator_rule_2: buildRule('The 20% pool is based on the total Diamonds {DIA} of the top 15 creators.'),
+                creator_rule_3: buildRule('<strong>Bonus:</strong> Get 1 lucky draw ticket<br>for every 500k Diamonds {DIA} collected via Play with Me.<br>Chance to win 80,000 Diamonds {DIA} (10 winners).'),
+                creator_cta: 'Event Details', btn_follow: 'Follow', 
+                disclaimer: 'The organizer reserves the right to modify or terminate the event.<br>Event data updates may take up to 5 minutes.'
+            },
+            'ja': {
+                title: '大人のオモチャパーティー', date: '2026/04/03 - 04/06 (GMT+8)',
+                ends_in: 'パーティー終了まで', time_d: '日', time_h: '時間', time_m: '分', time_s: '秒',
+                login_prompt: 'ログインして進行状況を確認', login_btn: 'ログイン',
+                progress_title: 'ダイヤ還元進捗', spent: '累計送信ダイヤ', got_cashback: '獲得済み',
+                progress_rule: buildRule('配信内「アクションメニュー」の任意コマンド<br>10,000 {DIA} 消費ごとに 500 {DIA} 還元'), 
+                limit_text: buildRule('* 還元上限は 1ユーザーにつき 10,000 {DIA}'),
+                cashback_delay_text: '*10〜20分後に自動的に付与されます。',
+                pack_title: 'ゲリラ増量パック⚡️ 最大11%ダイヤ増量', pack_btn: '今すぐ購入',
+                badge_title: '限定バッジアチーブメント', badge_name: 'トイマスター', badge_coming_soon: '近日公開', watch_progress: '視聴時間', badge_locked: '未達成', badge_unlocked: 'アチーブメント達成！',
+                badge_rule: buildRule('配信で1万{DIA}分のコマンドを利用し、<br>「プライベート」を10分視聴すると達成。'), 
+                badge_disclaimer: '* 進行状況は「プライベート配信」の課金分数に基づきます。',
+                cta: '配信ルームへ行く', 
+                creator_main_title: '賞金プールチャレンジ', creator_sub_title: 'お気に入りの女神を応援しよう', creator_rule_title: 'ライバールール',
+                creator_rule_1: buildRule('イベント中の累計ダイヤ{DIA}ランキング上位15名で、<br>20%の賞金プールを山分け。'),
+                creator_rule_2: buildRule('賞金プールは上位15名の合計ダイヤ{DIA}を基準とします。'),
+                creator_rule_3: buildRule('<strong>追加ボーナス:</strong> コマンドで50万ダイヤ{DIA}集めるごとに<br>抽選券1枚獲得。抽選で10名様に<br>80,000ダイヤ{DIA}をプレゼント。'),
+                creator_cta: 'イベント詳細', btn_follow: 'フォロー', 
+                disclaimer: '主催者は本イベントを変更・終了する権利を有します。<br>データの更新には約5分かかります。'
+            }
+        };
+
+        let currentLang = 'zh-TW';
+        function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+
+        let prevTick = { d: -1, h: -1, m: -1, s: -1 };
+        function updateTick(id, val) {
+            if (prevTick[id] !== val) {
+                const el = document.getElementById('cd-' + id);
+                el.innerText = val.toString().padStart(2, '0');
+                el.classList.remove('tick-pop'); void el.offsetWidth; el.classList.add('tick-pop');
+                prevTick[id] = val;
+            }
+        }
+        function initCountdown() {
+            const endDate = new Date('2026-04-06T23:59:59+08:00').getTime();
+            setInterval(() => {
+                const dist = endDate - new Date().getTime();
+                if (dist < 0) return;
+                updateTick('d', Math.floor(dist / (1000 * 60 * 60 * 24)));
+                updateTick('h', Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+                updateTick('m', Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60)));
+                updateTick('s', Math.floor((dist % (1000 * 60)) / 1000));
+            }, 1000);
+        }
+
+        function initParallax() {
+            const pBg = document.getElementById('parallax-bg');
+            window.addEventListener('scroll', () => {
+                requestAnimationFrame(() => {
+                    pBg.style.transform = `translate3d(0, ${window.scrollY * -0.25}px, 0)`;
+                });
+            }, { passive: true });
+        }
+
+        function initTiltEffect() {
+            const cards = document.querySelectorAll('.tiltable, .creator-card');
+            cards.forEach(card => {
+                card.style.animation = 'none'; card.style.opacity = '1'; card.style.transform = 'translateY(0)'; 
+                card.addEventListener('mousemove', e => {
+                    const r = card.getBoundingClientRect();
+                    const rx = ((e.clientY - r.top - r.height/2) / (r.height/2)) * -10; 
+                    const ry = ((e.clientX - r.left - r.width/2) / (r.width/2)) * 10;
+                    card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
+                });
+                card.addEventListener('mouseleave', () => card.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1,1,1)`);
+                card.addEventListener('touchmove', e => {
+                    if(!e.touches.length) return;
+                    const r = card.getBoundingClientRect(), t = e.touches[0];
+                    const rx = Math.max(-10, Math.min(10, ((t.clientY - r.top - r.height/2) / (r.height/2)) * -10));
+                    const ry = Math.max(-10, Math.min(10, ((t.clientX - r.left - r.width/2) / (r.width/2)) * 10));
+                    card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+                }, {passive: true});
+                card.addEventListener('touchend', () => card.style.transform = `perspective(1000px) rotateX(0) rotateY(0)`);
+            });
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', e => {
+                    if (!e.gamma || !e.beta) return;
+                    const tiltX = Math.max(-6, Math.min(6, (e.beta - 45) / 5)); 
+                    const tiltY = Math.max(-6, Math.min(6, e.gamma / 5));
+                    cards.forEach(card => {
+                        if(card.matches(':hover') || card.matches(':active')) return;
+                        card.style.transform = `perspective(1000px) rotateX(${-tiltX}deg) rotateY(${tiltY}deg)`;
+                    });
+                }, {passive: true});
+            }
+        }
+
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null; let lastUpdate = 0; const fpsInterval = 1000 / 30; 
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const elapsed = timestamp - startTimestamp;
+                if (timestamp - lastUpdate >= fpsInterval) {
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeOut = 1 - Math.pow(1 - progress, 3); 
+                    const current = Math.floor(easeOut * (end - start) + start);
+                    obj.innerText = current.toLocaleString();
+                    lastUpdate = timestamp;
+                }
+                if (elapsed < duration) window.requestAnimationFrame(step);
+                else obj.innerText = end.toLocaleString(); 
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        const isIframe = window.self !== window.top;
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a[target="_blank"]');
+            if (link && isIframe) {
+                try {
+                    const url = new URL(link.href, document.baseURI);
+                    if (url.hostname === 'swag.live' || url.hostname === 'www.swag.live') {
+                        e.preventDefault(); window.parent.postMessage({ type: 'PWA_NAVIGATE', url: link.href }, '*');
+                    }
+                } catch(err) {}
+            }
+        });
+
+        function getUserId() {
+            const up = new URLSearchParams(window.location.search);
+            const hp = new URLSearchParams(window.location.hash.substring(1));
+            return up.get('user_id') || hp.get('user_id'); 
+        }
+
+        function renderUserProgress(data) {
+            const cost = data.diamond_cost || 0, cashback = data.total_cashback || 0, duration = data.duration || 0;
+            
+            animateValue(document.getElementById('val-cost'), 0, cost, 1500);
+            animateValue(document.getElementById('val-cashback'), 0, cashback, 1500);
+            
+            // 新增的進度條多次跑滿動畫邏輯 (遊戲化集氣感)
+            const pb = document.getElementById('progress-bar');
+            const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+            async function runProgressAnimation() {
+                let fullCycles = Math.floor(cost / 10000);
+                let remainder = (cost % 10000) / 10000 * 100;
+
+                // 若達總上限 20萬，最多顯示 20 圈
+                if (cost >= 200000) {
+                    fullCycles = 20;
+                    remainder = 100;
+                } else if (cost > 0 && cost % 10000 === 0) {
+                    // 若剛好整除，例如 20000，則跑 1 圈後停在 100%
+                    fullCycles -= 1;
+                    remainder = 100;
+                }
+
+                if (cost > 0) pb.classList.add('active');
+
+                // 跑滿動畫 (每圈很快)
+                for (let i = 0; i < fullCycles; i++) {
+                    pb.style.transition = 'width 0.15s ease-in';
+                    pb.style.width = '100%';
+                    await sleep(150); // 等待跑滿
+
+                    pb.style.transition = 'none'; // 瞬間歸零
+                    pb.style.width = '0%';
+                    await sleep(20); // 短暫停留再跑下一圈
+                }
+
+                // 最後跑到真實比例
+                pb.style.transition = 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                pb.style.width = remainder + '%';
+            }
+
+            setTimeout(runProgressAnimation, 500);
+
+            document.getElementById('current-time').innerText = formatTime(Math.min(duration, 600));
+            
+            if (cost >= 10000 && duration >= 600) {
+                document.getElementById('badge-wrapper').classList.add('badge-unlocked'); 
+                const st = document.getElementById('badge-status');
+                st.innerText = i18n[currentLang].badge_unlocked; st.style.color = 'var(--color-brand-gold)'; st.style.fontWeight = 'var(--font-weight-semibold)';
+            }
+        }
+
+        async function fetchUserData() {
+            const uid = getUserId();
+            if (!uid) {
+                document.getElementById('overlay-progress').classList.add('active'); document.getElementById('overlay-badge').classList.add('active');
+                renderUserProgress({}); return;
+            }
+            try {
+                const res = await fetch(`https://campaign-api-service-905468082258.asia-east1.run.app/api/user_data?user_id=${uid}`);
+                if (!res.ok) throw new Error(`HTTP Error`);
+                const json = await res.json();
+                renderUserProgress(json?.data || {});
+            } catch (err) { renderUserProgress({}); }
+        }
+
+        async function fetchCreators() {
+            try {
+                const res = await fetch('https://api.swag.live/feeds/user_leaderboard_livestream_24h_a?limit=10&no-redirect=1&format=user');
+                if (!res.ok) throw new Error(`HTTP Error`);
+                const list = (await res.json()).slice(0, 10);
+                const container = document.getElementById('creator-list'); container.innerHTML = '';
+                list.forEach(u => {
+                    const card = document.createElement('div'); card.className = 'creator-card';
+                    card.onclick = () => window.open(`https://swag.live/user/${u.id}`, '_blank');
+                    card.innerHTML = `<div class="avatar"><img src="https://public.swag.live/users/${u.id}/picture.jpg?size=256x256&format=avif" loading="lazy"></div><div class="creator-name">${u.displayName || u.username}</div><span class="btn-follow" data-i18n="btn_follow">${i18n[currentLang].btn_follow}</span>`;
+                    container.appendChild(card);
+                });
+                initCarouselDrag(); 
+            } catch(e) { document.getElementById('section-creator').style.display = 'none'; }
+        }
+
+        function scrollCarousel(offset) { document.getElementById('creator-list').scrollBy({ left: offset, behavior: 'smooth' }); }
+        function initCarouselDrag() {
+            const slider = document.getElementById('creator-list'); let isDown = false, startX, scrollLeft;
+            slider.addEventListener('mousedown', (e) => { isDown = true; slider.style.cursor = 'grabbing'; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
+            slider.addEventListener('mouseleave', () => { isDown = false; slider.style.cursor = 'grab'; });
+            slider.addEventListener('mouseup', () => { isDown = false; slider.style.cursor = 'grab'; });
+            slider.addEventListener('mousemove', (e) => { if (!isDown) return; e.preventDefault(); slider.scrollLeft = scrollLeft - (e.pageX - slider.offsetLeft - startX) * 1.5; });
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => el.innerText = i18n[lang][el.getAttribute('data-i18n')] || el.innerText);
+            document.querySelectorAll('[data-i18n-html]').forEach(el => el.innerHTML = i18n[lang][el.getAttribute('data-i18n-html')] || el.innerHTML);
+            if (document.getElementById('badge-wrapper').classList.contains('badge-unlocked')) document.getElementById('badge-status').innerText = i18n[lang].badge_unlocked;
+        }
+
+        window.onload = async () => {
+            changeLanguage(document.getElementById('lang-selector').value);
+            initCountdown();
+            initParallax();
+            try { await Promise.allSettled([fetchUserData(), fetchCreators()]); } 
+            finally {
+                document.getElementById('skeleton-ui').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                document.getElementById('sticky-cta').style.display = 'flex'; 
+                setTimeout(initTiltEffect, 800); 
+            }
+        };
+    </script>
+</body>
+</html>
