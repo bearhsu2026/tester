@@ -113,6 +113,38 @@
   .banner{font-size:12px;color:var(--gold);background:rgba(255,165,0,.08);border:1px solid rgba(255,165,0,.3);
     border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:14px;display:none}
   .banner.show{display:block}
+
+  /* Add-key bar + edit button */
+  .addkey-bar{display:flex;justify-content:flex-end;margin-bottom:10px}
+  .addkey-bar button{height:38px;padding:0 16px}
+  .editbtn{background:none;border:none;height:auto;padding:0 2px;color:var(--text-3);font-size:13px;cursor:pointer;flex:none}
+  .editbtn:hover{color:var(--brand)}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.65);display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+  .modal[hidden]{display:none}
+  .modal-card{background:var(--panel);border:1px solid var(--outline);border-radius:var(--radius);width:100%;max-width:640px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--outline);font-weight:600}
+  .modal-head .x2{background:none;border:none;color:var(--text-3);font-size:22px;height:auto;padding:0 6px;cursor:pointer}
+  .modal-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+  .modal-foot{display:flex;gap:10px;justify-content:flex-end;padding:14px 16px;border-top:1px solid var(--outline);flex-wrap:wrap}
+  .fld2{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--text-2)}
+  .fld2lbl{font-size:12px;color:var(--text-3);margin-bottom:2px}
+  .filepath{font-family:var(--mono);font-size:12px;color:var(--info)}
+  .groups{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .gchip{font-size:12px;padding:4px 10px;border-radius:var(--radius-full);border:1px solid var(--outline);background:var(--panel-2);color:var(--text-2);cursor:pointer;user-select:none}
+  .gchip.on{background:rgba(0,210,190,.18);border-color:var(--brand);color:var(--brand)}
+  .gchip.fixed{background:rgba(0,210,190,.18);border-color:var(--brand);color:var(--brand);cursor:default}
+  .gchip .rm{margin-left:6px;color:var(--text-3)}
+  .langrow{display:grid;grid-template-columns:128px 1fr;gap:8px;align-items:center;margin-bottom:6px}
+  .langrow .lbl{font-size:12px;color:var(--text-3);line-height:1.3}
+  .langrow .lbl .code{font-family:var(--mono);color:var(--info);font-size:13px}
+  .langrow input{height:36px}
+  .preview{background:#1a1a1a;border:1px solid var(--outline);border-radius:var(--radius-sm);padding:10px 12px;font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-word;color:var(--text-2);max-height:260px;overflow:auto}
+  .editnote{font-size:13px;color:var(--text-2);background:rgba(255,165,0,.08);border:1px solid rgba(255,165,0,.3);border-radius:var(--radius-sm);padding:10px 12px;line-height:1.7}
+  .replline{display:flex;gap:8px;align-items:center;margin-top:8px}
+  .replline code{flex:1;background:#1a1a1a;border:1px solid var(--outline);border-radius:var(--radius-sm);padding:8px 10px;font-family:var(--mono);font-size:12px;word-break:break-all;white-space:pre-wrap}
+  button.small{height:32px;padding:4px 12px;font-size:13px}
 </style>
 </head>
 <body>
@@ -168,6 +200,10 @@
     </div>
   </div>
 
+  <div class="addkey-bar">
+    <button class="primary" id="add-key-btn">➕ 新增 Translation Key</button>
+  </div>
+
   <div class="results">
     <table>
       <thead><tr>
@@ -178,6 +214,41 @@
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
+  </div>
+</div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head"><span id="modal-title">新增 Translation Key</span><button id="modal-close" class="x2" aria-label="關閉">×</button></div>
+    <div class="modal-body">
+      <label class="fld2" id="row-key">Key 名稱(= 檔名,不含 .yaml)
+        <input id="m-key" placeholder="例如 giftname_valentines_day" autocomplete="off">
+      </label>
+      <div class="filepath" id="m-filepath"></div>
+
+      <div id="row-groups">
+        <div class="fld2lbl">Groups(必填,固定含 <code>default</code>,請至少再選一個 feature)</div>
+        <div class="groups" id="m-groups"></div>
+        <input id="m-group-custom" placeholder="自訂 group(如 message-&lt;id&gt;、user-&lt;id&gt;),輸入後按 Enter 加入" autocomplete="off">
+      </div>
+
+      <div>
+        <div class="fld2lbl" id="m-langs-label">翻譯內容(留空的語言會自動以 en 帶入)</div>
+        <div id="m-langs"></div>
+        <button class="ghost small" id="m-fill-en" type="button">用 en 填滿空白語言</button>
+      </div>
+
+      <div id="m-preview-wrap">
+        <div class="fld2lbl">YAML 預覽(將自動帶入 GitHub 新檔案頁)</div>
+        <pre class="preview" id="m-preview"></pre>
+      </div>
+
+      <div class="editnote" id="m-edit-note" hidden></div>
+    </div>
+    <div class="modal-foot">
+      <button class="ghost" id="m-copy">複製 YAML</button>
+      <button class="primary" id="m-action">在 GitHub 開新檔(自動帶入)</button>
+    </div>
   </div>
 </div>
 
@@ -498,6 +569,7 @@
       const tag = st==="new"?'<span class="tag new">NEW</span>':st==="chg"?'<span class="tag chg">更新</span>':"";
       html += `<tr class="${rowClass}">`
         + `<td><div class="keycell"><button class="copybtn" data-copy="${esc(r.key)}" title="複製 key">⧉</button>`
+        + `<button class="editbtn" data-edit="${esc(r.key)}" title="編輯 / 送 PR">✏️</button>`
         + `<span class="keytext" data-copy="${esc(r.key)}">${highlight(r.key,q)}</span>${tag}</div></td>`;
       if(showEn) html += `<td>${highlight(r.en,q)}</td>`;
       html += `<td>${highlight(r.val,q)}</td>`
@@ -593,6 +665,8 @@
   document.addEventListener("click", e=>{
     const start = e.target.closest("#start-btn");
     if(start){ ensureStarted(); return; }
+    const ed = e.target.closest("[data-edit]");
+    if(ed){ openModal("edit", ed.getAttribute("data-edit")); return; }
     const t = e.target.closest("[data-copy]");
     if(!t) return;
     navigator.clipboard?.writeText(t.getAttribute("data-copy")).then(()=>{
@@ -610,6 +684,173 @@
     if(!state.started) return;
     if(document.hidden) stopTimer();
     else if(state.auto){ refresh(); startTimer(); }
+  });
+
+  // ===== 編輯 / 新增 → swaglive/translations PR (免 token) =====
+  const REPO = "swaglive/translations";
+  const BRANCH = "master";
+  const LANG_ORDER = ["en","de","es","fr","id","ja","ko","ms","th","tr","vi","zh","zh-hant"];
+  const LANG_NAMES = {en:"English",de:"Deutsch",es:"Español",fr:"Français",id:"Bahasa Indonesia",ja:"日本語",ko:"한국어",ms:"Bahasa Melayu",th:"ไทย",tr:"Türkçe",vi:"Tiếng Việt",zh:"简体中文","zh-hant":"繁體中文"};
+  const API2FILE = {"zh-tw":"zh-hant","zh-cn":"zh","en":"en","ja":"ja"};   // 顯示語言 → 檔案語言鍵
+  const FEATURE_GROUPS = ["feature:livestream","feature:chat","feature:post","feature:shop","feature:settings","feature:journal","feature:profile","feature:dashboard","feature:auth","feature:feed","feature:gift","feature:product","feature:search","feature:backpack","feature:notification","feature:general","feature:campaign","feature:seo","feature:creator_onboarding","feature:user_kyc"];
+
+  const M = {
+    el:$("modal"), title:$("modal-title"), close:$("modal-close"),
+    rowKey:$("row-key"), key:$("m-key"), filepath:$("m-filepath"),
+    rowGroups:$("row-groups"), groups:$("m-groups"), groupCustom:$("m-group-custom"),
+    langsLabel:$("m-langs-label"), langs:$("m-langs"), fillEn:$("m-fill-en"),
+    previewWrap:$("m-preview-wrap"), preview:$("m-preview"),
+    editNote:$("m-edit-note"), copy:$("m-copy"), action:$("m-action")
+  };
+  let modalMode="create", modalKey="", editLangCodes=[];
+  let extraGroups;
+  try{ extraGroups = new Set(JSON.parse(ls.get("tl_groups","[]"))); }catch(e){ extraGroups = new Set(); }
+  function persistGroups(){ ls.set("tl_groups", JSON.stringify(Array.from(extraGroups))); }
+
+  // 把字串輸出成安全的 YAML scalar(必要時加雙引號)
+  function yamlScalar(s){
+    s = String(s);
+    if(s==="") return '""';
+    const need =
+      /^\s/.test(s) || /\s$/.test(s) || /:\s/.test(s) || /\s#/.test(s) ||
+      /^[-?:,\[\]{}#&*!|>'"%@`]/.test(s) || /[\n\r\t]/.test(s) ||
+      /^(true|false|null|yes|no|on|off|~)$/i.test(s) ||
+      /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(s);
+    if(!need) return s;
+    return '"' + s.replace(/\\/g,"\\\\").replace(/"/g,'\\"').replace(/\n/g,"\\n").replace(/\r/g,"\\r").replace(/\t/g,"\\t") + '"';
+  }
+  function getGroups(){ return ["default", ...Array.from(extraGroups)]; }
+  function buildYaml(groups, values){
+    let out = "_:\n  groups:\n";
+    for(const g of groups) out += "  - " + g + "\n";
+    const en = String(values.en||"");
+    for(const code of LANG_ORDER){
+      let v = values[code]; if(v==null) v="";
+      if(String(v).trim()==="") v = en;            // 空白語言以 en 帶入(同 README 範本)
+      out += code + ": " + yamlScalar(v) + "\n";
+    }
+    return out;
+  }
+  function newFileUrl(key, content){
+    return `https://github.com/${REPO}/new/${BRANCH}?filename=keys/${encodeURIComponent(key)}.yaml&value=${encodeURIComponent(content)}`;
+  }
+  function editFileUrl(key){
+    return `https://github.com/${REPO}/edit/${BRANCH}/keys/${encodeURIComponent(key)}.yaml`;
+  }
+
+  function renderGroups(){
+    let html = `<span class="gchip fixed">default</span>`;
+    for(const g of FEATURE_GROUPS)
+      html += `<span class="gchip ${extraGroups.has(g)?"on":""}" data-group="${esc(g)}">${esc(g)}</span>`;
+    for(const g of extraGroups) if(FEATURE_GROUPS.indexOf(g)<0)
+      html += `<span class="gchip on" data-group="${esc(g)}">${esc(g)}<span class="rm" data-rmgroup="${esc(g)}">×</span></span>`;
+    M.groups.innerHTML = html;
+  }
+  function renderLangInputs(codes, prefill){
+    let html="";
+    for(const code of codes){
+      const v = prefill[code]!=null ? prefill[code] : "";
+      html += `<div class="langrow"><div class="lbl"><span class="code">${code}</span><br>${esc(LANG_NAMES[code]||"")}</div>`
+        + `<input data-lang="${esc(code)}" value="${esc(v)}" placeholder="${code==="en"?"建議必填":""}" autocomplete="off"></div>`;
+    }
+    M.langs.innerHTML = html;
+  }
+  function collectValues(){
+    const v={};
+    M.langs.querySelectorAll("input[data-lang]").forEach(i=> v[i.getAttribute("data-lang")] = i.value);
+    return v;
+  }
+  function refreshPreview(){
+    if(modalMode!=="create") return;
+    const key = M.key.value.trim();
+    M.filepath.textContent = "→ keys/" + (key||"<key>") + ".yaml";
+    M.preview.textContent = buildYaml(getGroups(), collectValues());
+  }
+  function editReplLines(){
+    const v = collectValues();
+    return editLangCodes.map(code => code + ": " + yamlScalar(v[code]||"")).join("\n");
+  }
+  function buildEditNote(){
+    M.editNote.innerHTML = "GitHub 編輯頁無法自動帶入內容。按「開啟 GitHub 編輯頁」後,請在檔案中找到對應語言那一行,替換成下面內容(按「複製替換行」可一次複製):"
+      + `<div class="replline"><code id="m-repl">${esc(editReplLines())}</code></div>`;
+  }
+
+  function openModal(mode, key){
+    modalMode = mode; modalKey = key||"";
+    if(mode==="create"){
+      M.title.textContent = "新增 Translation Key";
+      M.rowKey.style.display=""; M.rowGroups.style.display=""; M.previewWrap.style.display="";
+      M.fillEn.style.display=""; M.editNote.hidden = true;
+      M.langsLabel.textContent = "翻譯內容(留空的語言會自動以 en 帶入)";
+      M.key.value=""; M.key.style.borderColor="";
+      renderGroups();
+      renderLangInputs(LANG_ORDER, {});
+      M.action.textContent = "在 GitHub 開新檔(自動帶入)";
+      M.copy.textContent = "複製 YAML";
+      refreshPreview();
+      setTimeout(()=>M.key.focus(),50);
+    }else{
+      M.title.textContent = "編輯 " + key;
+      M.rowKey.style.display="none"; M.rowGroups.style.display="none"; M.previewWrap.style.display="none";
+      M.fillEn.style.display="none";
+      M.langsLabel.textContent = "要修改的翻譯(僅含目前已載入的語言)";
+      M.filepath.textContent = "→ keys/" + key + ".yaml";
+      const fileLang = API2FILE[state.lang] || state.lang;
+      const codes=["en"]; const prefill={en: state.en[key]!=null ? state.en[key] : ""};
+      if(fileLang!=="en"){ codes.push(fileLang); prefill[fileLang] = state.display[key]!=null ? state.display[key] : ""; }
+      editLangCodes = codes;
+      renderLangInputs(codes, prefill);
+      M.editNote.hidden = false; buildEditNote();
+      M.action.textContent = "開啟 GitHub 編輯頁";
+      M.copy.textContent = "複製替換行";
+    }
+    M.el.hidden = false;
+  }
+  function closeModal(){ M.el.hidden = true; }
+
+  $("add-key-btn").addEventListener("click", ()=> openModal("create"));
+  M.close.addEventListener("click", closeModal);
+  M.el.addEventListener("click", e=>{ if(e.target===M.el) closeModal(); });
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !M.el.hidden) closeModal(); });
+  M.key.addEventListener("input", ()=>{ M.key.style.borderColor=""; refreshPreview(); });
+  M.langs.addEventListener("input", ()=>{
+    if(modalMode==="create") refreshPreview();
+    else { const c=$("m-repl"); if(c) c.textContent = editReplLines(); }
+  });
+  M.groups.addEventListener("click", e=>{
+    const rm = e.target.closest("[data-rmgroup]");
+    if(rm){ extraGroups.delete(rm.getAttribute("data-rmgroup")); persistGroups(); renderGroups(); refreshPreview(); return; }
+    const chip = e.target.closest("[data-group]");
+    if(!chip) return;
+    const g = chip.getAttribute("data-group");
+    if(extraGroups.has(g)) extraGroups.delete(g); else extraGroups.add(g);
+    persistGroups(); renderGroups(); refreshPreview();
+  });
+  M.groupCustom.addEventListener("keydown", e=>{
+    if(e.key!=="Enter") return;
+    e.preventDefault();
+    const g = M.groupCustom.value.trim();
+    if(g){ extraGroups.add(g); persistGroups(); M.groupCustom.value=""; renderGroups(); refreshPreview(); }
+  });
+  M.fillEn.addEventListener("click", ()=>{
+    const inputs = M.langs.querySelectorAll("input[data-lang]");
+    let en=""; inputs.forEach(i=>{ if(i.getAttribute("data-lang")==="en") en=i.value; });
+    inputs.forEach(i=>{ if(i.getAttribute("data-lang")!=="en" && !i.value.trim()) i.value=en; });
+    refreshPreview();
+  });
+  M.copy.addEventListener("click", ()=>{
+    const text = modalMode==="create" ? buildYaml(getGroups(), collectValues()) : editReplLines();
+    navigator.clipboard?.writeText(text).then(()=>{ const o=M.copy.textContent; M.copy.textContent="✓ 已複製"; setTimeout(()=>M.copy.textContent=o,1200); }).catch(()=>{});
+  });
+  M.action.addEventListener("click", ()=>{
+    if(modalMode==="create"){
+      const key = M.key.value.trim();
+      if(!key){ M.key.focus(); M.key.style.borderColor="var(--red)"; return; }
+      window.open(newFileUrl(key, buildYaml(getGroups(), collectValues())), "_blank", "noopener");
+    }else{
+      navigator.clipboard?.writeText(editReplLines()).catch(()=>{});
+      window.open(editFileUrl(modalKey), "_blank", "noopener");
+    }
   });
 
   // ---- Go (預設不載入,等使用者開始查詢) ----
